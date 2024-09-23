@@ -20,8 +20,8 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>  
         <Header />
         <main>{children}</main>
-        <Footer className="mt-20 mx-2" />
+        <Footer className="mx-10" />
       </body>  
-    </html>  
+    </html>
   );  
 }

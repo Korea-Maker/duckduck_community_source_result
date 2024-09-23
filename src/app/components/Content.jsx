@@ -1,101 +1,112 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios"; // Axios 임포트
 import { ChevronUp, ChevronDown } from "lucide-react";
-import debounce from 'lodash.debounce'; // Debounce 임포트
 
-export default function Content({ name }) {
+export default function Content({ name, community }) {
   const [posts, setPosts] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
-  const containerRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 5;
+  const [isLoading, setIsLoading] = useState(false); // 로딩 상태
 
   useEffect(() => {
-    fetchPosts(currentIndex);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, name]);
+    // 커뮤니티가 변경되면 첫 페이지로 리셋
+    setCurrentPage(1);
+    fetchPosts();
+  }, [community]);
 
-  const fetchPosts = async (page) => {
-    if (isLoading) return;
+  const fetchPosts = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/posts`, {
-        params: { community: name, page },
-      });
+      const response = await axios.get(`http://127.0.0.1:5000/posts/${community}`);
       const data = response.data;
-
-      if (data.posts.length === 0) {
-        setHasMore(false);
+  
+      if (data.posts) {
+        const processedPosts = data.posts.map(post => ({
+          post_num: post[0],
+          title: post[1],
+          link: post[2],
+          views: post[3],
+          likes: post[4]
+        }));
+  
+        // post_num이 큰 순서대로 정렬
+        processedPosts.sort((a, b) => b.post_num - a.post_num);
+  
+        setPosts(processedPosts);
       } else {
-        setPosts((prev) => [...prev, ...data.posts]);
+        setPosts([]);
       }
     } catch (error) {
       console.error("게시글을 불러오는 중 오류가 발생했습니다:", error);
+      setPosts([]);  // 오류 발생 시 빈 리스트를 설정
     } finally {
       setIsLoading(false);
     }
   };
+  
 
-  const handleScroll = debounce(() => {
-    if (!containerRef.current || !hasMore) return;
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+  // 총 페이지 수 계산
+  const totalPages = Math.ceil(posts.length / postsPerPage);
 
-    if (scrollTop + clientHeight >= scrollHeight - 5) {
-      setCurrentIndex((prev) => prev + 1);
-    } else if (scrollTop === 0 && currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
-  }, 200);
+  // 현재 페이지에 표시할 게시글 슬라이스
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
 
-  useEffect(() => {
-    const currentRef = containerRef.current;
-    if (currentRef) {
-      currentRef.addEventListener('scroll', handleScroll);
-    }
-    return () => {
-      if (currentRef) {
-        currentRef.removeEventListener('scroll', handleScroll);
-      }
-      handleScroll.cancel();
-    };
-  }, [handleScroll]);
+  // 페이지 네비게이션 핸들러
+  const handlePrevPage = () => {
+    setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prevPage => Math.min(prevPage + 1, totalPages));
+  };
 
   return (
     <div className="flex-1 border-l border-r border-gray-200 p-4 relative">
       <h2 className="text-xl font-bold mb-4 text-center">{name} 핫이슈</h2>
-      <div
-        ref={containerRef}
-        className="h-full overflow-y-auto"
-      >
-        {posts.length > 0 ? (
-          posts.map((post) => (
-            <div key={post.id} className="bg-white shadow-md rounded p-4 mb-4">
-              <h3 className="text-lg font-semibold">{post.title}</h3>
-              <p className="mt-2">{post.content}</p>
+      <div className="h-full overflow-y-auto">
+        {isLoading ? (
+          <p className="text-center text-gray-500 mt-4 z-1000">로딩중...</p>
+        ) : currentPosts.length > 0 ? (
+          currentPosts.map((post) => (
+            <div key={post.post_num} className="bg-white shadow-md rounded p-4 mb-4">
+              <h3 className="text-lg font-semibold">
+                <a
+                  href={post.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline"
+                >
+                  {post.title}
+                </a>
+              </h3>
             </div>
           ))
         ) : (
-          !isLoading && <p className="text-center text-gray-500 mt-4 z-1000">로딩중...</p>
+          <p className="text-center text-gray-500 mt-4 z-1000">게시물이 없습니다.</p>
         )}
-        {isLoading && <p className="text-center text-gray-500 mt-4 z-1000">로딩중...</p>}
       </div>
-      <div className="absolute bottom-30 left-0 right-0 flex justify-center space-x-4">
+      <div className="flex justify-center space-x-4 mt-4">
         <button
-          onClick={() => setCurrentIndex((prev) => Math.max(prev - 1, 0))}
-          className="bg-blue-500 text-white p-2 rounded-full"
-          disabled={currentIndex === 0}
+          onClick={handlePrevPage}
+          className="bg-blue-500 text-white p-2 rounded-full disabled:opacity-50"
+          disabled={currentPage === 1}
         >
           <ChevronUp size={24} />
         </button>
         <button
-          onClick={() => setCurrentIndex((prev) => prev + 1)}
-          className="bg-blue-500 text-white p-2 rounded-full"
-          disabled={!hasMore}
+          onClick={handleNextPage}
+          className="bg-blue-500 text-white p-2 rounded-full disabled:opacity-50"
+          disabled={currentPage === totalPages}
         >
           <ChevronDown size={24} />
         </button>
+      </div>
+      <div className="text-center mt-2">
+        Page {currentPage} of {totalPages}
       </div>
     </div>
   );
