@@ -19,7 +19,7 @@ export default function Content({ name, community }) {
   const fetchPosts = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`https://duckduck.jongook.xyz/posts/${community}`);
+      const response = await axios.get(`https://duckduck.jongwook.xyz/posts/${community}`);
       const data = response.data;
   
       if (data.posts) {
