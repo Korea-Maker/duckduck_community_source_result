@@ -44,17 +44,17 @@ function Header() {
   }, []);
 
   return (
-    <div className="relative w-full h-[150px]">
+    <div className="relative w-full h-[200px]">
       <Image
         src="/images/duckduck_banner.jpg"
         alt="duckduck_banner"
         layout="fill"
-        objectFit="fill"
+        objectFit="cover"
       />
       <h1
         className={`
           absolute inset-0 flex justify-center items-center 
-          ${colors[colorIndex]} 
+          ${colors[4]} 
           text-[3.5vw] font-bold p-4 shadow-lg
           font-noto-sans
         `}
