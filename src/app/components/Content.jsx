@@ -23,13 +23,33 @@ export default function Content({ name, community }) {
       const data = response.data;
   
       if (data.posts) {
-        const processedPosts = data.posts.map(post => ({
-          post_num: post[0],
-          title: post[1],
-          link: post[2],
-          views: post[3],
-          likes: post[4]
-        }));
+        const processedPosts = data.posts.map(post => {
+          let title = post[1];
+          
+          // 제일 처음의 대괄호와 다음 두 글자를 제거
+          if (title.startsWith('[')) {
+            const closingBracketIndex = title.indexOf(']');
+            if (closingBracketIndex !== -1) {
+              title = title.slice(closingBracketIndex + 1).trim();
+            }
+          }
+
+          let lastIndex = title.lastIndexOf('[');
+          if (lastIndex !== -1 && title.endsWith(']')) {
+            let numberPart = title.substring(lastIndex + 1, title.length - 1);
+            if (/^\d+$/.test(numberPart)) {
+              title = title.substring(0, lastIndex).trim();
+            }
+          }
+          
+          return {
+            post_num: post[0],
+            title: title,
+            link: post[2],
+            views: post[3],
+            likes: post[4]
+          };
+        });
   
         // post_num이 큰 순서대로 정렬
         processedPosts.sort((a, b) => b.post_num - a.post_num);
@@ -45,7 +65,6 @@ export default function Content({ name, community }) {
       setIsLoading(false);
     }
   };
-  
 
   // 총 페이지 수 계산
   const totalPages = Math.ceil(posts.length / postsPerPage);
@@ -72,13 +91,13 @@ export default function Content({ name, community }) {
           <p className="text-center text-gray-500 mt-4 z-1000">로딩중...</p>
         ) : currentPosts.length > 0 ? (
           currentPosts.map((post) => (
-            <div key={post.post_num} className="bg-white shadow-md rounded p-4 mb-4">
-              <h3 className="text-lg font-semibold">
+            <div key={post.post_num} className="bg-white shadow-md rounded p-2 mb-2 md:p-4 md:mb-4">
+              <h3 className="text-sm md:text-lg font-semibold">
                 <a
                   href={post.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
+                  className="text-blue-700 hover:underline"
                 >
                   {post.title}
                 </a>
@@ -92,14 +111,14 @@ export default function Content({ name, community }) {
       <div className="flex justify-center space-x-4 mt-4">
         <button
           onClick={handlePrevPage}
-          className="bg-blue-500 text-white p-2 rounded-full disabled:opacity-50"
+          className="bg-blue-500 text-white p-2 rounded-full disabled:opacity-50 transform transition hover:scale-105 active:scale-95"
           disabled={currentPage === 1}
         >
           <ChevronUp size={24} />
         </button>
         <button
           onClick={handleNextPage}
-          className="bg-blue-500 text-white p-2 rounded-full disabled:opacity-50"
+          className="bg-blue-500 text-white p-2 rounded-full disabled:opacity-50 transform transition hover:scale-105 active:scale-95"
           disabled={currentPage === totalPages}
         >
           <ChevronDown size={24} />
