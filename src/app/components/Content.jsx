@@ -51,9 +51,6 @@ export default function Content({ name, community }) {
           };
         });
   
-        // post_num이 큰 순서대로 정렬
-        // processedPosts.sort((a, b) => b.post_num - a.post_num);
-  
         setPosts(processedPosts);
       } else {
         setPosts([]);
@@ -91,8 +88,8 @@ export default function Content({ name, community }) {
           <p className="text-center text-gray-500 mt-4 z-1000">로딩중...</p>
         ) : currentPosts.length > 0 ? (
           currentPosts.map((post) => (
-            <div key={post.post_num} className="bg-white shadow-md rounded p-2 mb-2 md:p-4 md:mb-4">
-              <h3 className="text-sm md:text-lg font-semibold">
+            <div key={post.post_num} className="bg-white shadow-md rounded p-2 mb-2 md:p-4 md:mb-4 h-20 flex items-center justify-center">
+              <h3 className="text-sm md:text-lg font-semibold line-clamp-2">
                 <a
                   href={post.link}
                   target="_blank"
