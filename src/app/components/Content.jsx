@@ -52,7 +52,7 @@ export default function Content({ name, community }) {
         });
   
         // post_num이 큰 순서대로 정렬
-        processedPosts.sort((a, b) => b.post_num - a.post_num);
+        // processedPosts.sort((a, b) => b.post_num - a.post_num);
   
         setPosts(processedPosts);
       } else {
