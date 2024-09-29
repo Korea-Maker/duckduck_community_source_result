@@ -1,17 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import axios from "axios"; // Axios 임포트
+import axios from "axios";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 export default function Content({ name, community }) {
   const [posts, setPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // 커뮤니티가 변경되면 첫 페이지로 리셋
     setCurrentPage(1);
     fetchPosts();
   }, [community]);
@@ -26,7 +25,6 @@ export default function Content({ name, community }) {
         const processedPosts = data.posts.map(post => {
           let title = post[1];
           
-          // 제일 처음의 대괄호와 다음 두 글자를 제거
           if (title.startsWith('[')) {
             const closingBracketIndex = title.indexOf(']');
             if (closingBracketIndex !== -1) {
@@ -57,21 +55,18 @@ export default function Content({ name, community }) {
       }
     } catch (error) {
       console.error("게시글을 불러오는 중 오류가 발생했습니다:", error);
-      setPosts([]);  // 오류 발생 시 빈 리스트를 설정
+      setPosts([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 총 페이지 수 계산
   const totalPages = Math.ceil(posts.length / postsPerPage);
 
-  // 현재 페이지에 표시할 게시글 슬라이스
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
 
-  // 페이지 네비게이션 핸들러
   const handlePrevPage = () => {
     setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
   };
@@ -81,20 +76,26 @@ export default function Content({ name, community }) {
   };
 
   return (
-    <div className="flex-1 border-l border-r border-gray-200 p-4 relative">
-      <h2 className="text-xl font-bold mb-4 text-center">{name} 핫이슈</h2>
+    <div className="flex-1 border-l border-r border-gray-200 p-4 relative bg-gradient-to-b from-blue-50 to-white">
+      <h2 className="text-2xl font-bold mb-6 text-center text-blue-700 animate-pulse">{name} 핫이슈</h2>
       <div className="h-full overflow-y-auto">
         {isLoading ? (
-          <p className="text-center text-gray-500 mt-4 z-1000">로딩중...</p>
+          <div className="flex justify-center items-center h-40">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
         ) : currentPosts.length > 0 ? (
-          currentPosts.map((post) => (
-            <div key={post.post_num} className="bg-white shadow-md rounded p-2 mb-2 md:p-4 md:mb-4 h-20 flex items-center justify-center">
-              <h3 className="text-sm md:text-lg font-semibold line-clamp-2">
+          currentPosts.map((post, index) => (
+            <div 
+              key={post.post_num} 
+              className="bg-white shadow-lg rounded-lg p-4 mb-4 transform transition duration-300 hover:scale-105 hover:shadow-xl"
+              style={{animationDelay: `${index * 0.1}s`}}
+            >
+              <h3 className="text-lg font-semibold line-clamp-2">
                 <a
                   href={post.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-700 hover:underline"
+                  className="text-blue-600 hover:text-blue-800 transition duration-300"
                 >
                   {post.title}
                 </a>
@@ -102,26 +103,36 @@ export default function Content({ name, community }) {
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500 mt-4 z-1000">게시물이 없습니다.</p>
+          <p className="text-center text-gray-500 mt-4 animate-bounce">게시물이 없습니다.</p>
         )}
       </div>
-      <div className="flex justify-center space-x-4 mt-4">
+      <div className="flex justify-center space-x-6 mt-6">
         <button
           onClick={handlePrevPage}
-          className="bg-blue-500 text-white p-2 rounded-full disabled:opacity-50 transform transition hover:scale-105 active:scale-95"
+          className={`
+            p-3 rounded-full transition-all duration-500 ease-in-out transform
+            ${currentPage === 1
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-blue-400 to-blue-600 text-white hover:from-blue-500 hover:to-blue-700 hover:-translate-y-1 hover:shadow-lg active:translate-y-0'}
+          `}
           disabled={currentPage === 1}
         >
-          <ChevronUp size={24} />
+          <ChevronUp size={28} className="animate-bounce" />
         </button>
         <button
           onClick={handleNextPage}
-          className="bg-blue-500 text-white p-2 rounded-full disabled:opacity-50 transform transition hover:scale-105 active:scale-95"
+          className={`
+            p-3 rounded-full transition-all duration-500 ease-in-out transform
+            ${currentPage === totalPages
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-blue-400 to-blue-600 text-white hover:from-blue-500 hover:to-blue-700 hover:translate-y-1 hover:shadow-lg active:translate-y-0'}
+          `}
           disabled={currentPage === totalPages}
         >
-          <ChevronDown size={24} />
+          <ChevronDown size={28} className="animate-bounce" />
         </button>
       </div>
-      <div className="text-center mt-2">
+      <div className="text-center mt-4 text-sm font-medium text-blue-700">
         Page {currentPage} of {totalPages}
       </div>
     </div>
