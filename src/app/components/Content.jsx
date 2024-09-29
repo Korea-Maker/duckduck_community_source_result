@@ -87,19 +87,21 @@ export default function Content({ name, community }) {
           currentPosts.map((post, index) => (
             <div 
               key={post.post_num} 
-              className="bg-white shadow-lg rounded-lg p-4 mb-4 transform transition duration-300 hover:scale-105 hover:shadow-xl"
+              className="bg-white shadow-lg rounded-lg p-4 mb-4 transform transition duration-300 hover:scale-[1.02] hover:shadow-xl overflow-hidden"
               style={{animationDelay: `${index * 0.1}s`}}
             >
-              <h3 className="text-lg font-semibold line-clamp-2">
-                <a
-                  href={post.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 transition duration-300"
-                >
-                  {post.title}
-                </a>
-              </h3>
+              <div className="h-[4.5em] flex items-center justify-center overflow-hidden">
+                <h3 className="text-lg font-semibold line-clamp-2 text-center">
+                  <a
+                    href={post.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 transition duration-300"
+                  >
+                    {post.title}
+                  </a>
+                </h3>
+              </div>
             </div>
           ))
         ) : (
