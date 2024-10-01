@@ -1,17 +1,15 @@
 'use client';
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const MatchConnectingPoints = () => {
   const [optionsLeft, setOptionsLeft] = useState(['보기 1', '보기 2', '보기 3']);
   const [optionsRight, setOptionsRight] = useState(['보기 A', '보기 B', '보기 C']);
-  const [correctMatches, setCorrectMatches] = useState({0: 2, 1: 0, 2: 1});
+  const [correctMatches, setCorrectMatches] = useState({ 0: 2, 1: 0, 2: 1 });
   const [selectedLeft, setSelectedLeft] = useState(null);
   const [connections, setConnections] = useState([]);
   const [lines, setLines] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-
   const leftRefs = useRef([]);
   const rightRefs = useRef([]);
 
@@ -24,7 +22,6 @@ const MatchConnectingPoints = () => {
           const leftRect = leftElem.getBoundingClientRect();
           const rightRect = rightElem.getBoundingClientRect();
           const containerRect = leftElem.parentElement.parentElement.parentElement.getBoundingClientRect();
-
           return {
             leftX: leftRect.right - containerRect.left,
             leftY: leftRect.top + leftRect.height / 2 - containerRect.top,
@@ -36,7 +33,6 @@ const MatchConnectingPoints = () => {
       }).filter(line => line !== null);
       setLines(newLines);
     };
-
     updateLines();
     window.addEventListener('resize', updateLines);
     return () => window.removeEventListener('resize', updateLines);
@@ -105,7 +101,13 @@ const MatchConnectingPoints = () => {
   };
 
   const handleCorrectMatchChange = (leftIndex, rightIndex) => {
-    setCorrectMatches({...correctMatches, [leftIndex]: rightIndex});
+    setCorrectMatches({ ...correctMatches, [leftIndex]: rightIndex });
+  };
+
+  // Reset all matches
+  const handleReset = () => {
+    setConnections([]);
+    setSelectedLeft(null);
   };
 
   return (
@@ -164,7 +166,13 @@ const MatchConnectingPoints = () => {
         </div>
       )}
       {!isEditing && (
-        <div className="relative flex justify-center items-center">
+        <div className="relative flex justify-center items-center w-full rounded-md p-8">
+          <button
+            className="absolute bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md"
+            onClick={handleReset}
+          >
+            초기화
+          </button>
           <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
             {lines.map((line, index) => (
               <motion.line
@@ -183,34 +191,40 @@ const MatchConnectingPoints = () => {
           </svg>
           <div className="flex space-x-48">
             <div className="flex flex-col space-y-12">
-              {optionsLeft.map((option, index) => (
-                <motion.div
-                  key={index}
-                  ref={el => leftRefs.current[index] = el}
-                  className={`flex items-center cursor-pointer ${selectedLeft === index ? 'text-indigo-600' : 'text-gray-800'}`}
-                  onClick={() => handleLeftClick(index)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="text-xl font-semibold">{option}</span>
-                  <div className={`w-6 h-6 rounded-full ml-3 ${selectedLeft === index ? 'bg-indigo-600' : 'bg-gray-300'}`} />
-                </motion.div>
-              ))}
+              {optionsLeft.map((option, index) => {
+                const isConnected = connections.some((conn) => conn.left === index);
+                return (
+                  <motion.div
+                    key={index}
+                    ref={el => leftRefs.current[index] = el}
+                    className={`flex items-center cursor-pointer ${selectedLeft === index ? 'text-indigo-600' : 'text-gray-800'}`}
+                    onClick={() => handleLeftClick(index)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="text-xl font-semibold">{option}</span>
+                    <div className={`w-6 h-6 rounded-full ml-3 ${isConnected ? 'bg-green-600' : (selectedLeft === index ? 'bg-indigo-600' : 'bg-gray-300')}`} />
+                  </motion.div>
+                );
+              })}
             </div>
             <div className="flex flex-col space-y-12">
-              {optionsRight.map((option, index) => (
-                <motion.div
-                  key={index}
-                  ref={el => rightRefs.current[index] = el}
-                  className="flex items-center cursor-pointer text-gray-800"
-                  onClick={() => handleRightClick(index)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div className="w-6 h-6 bg-gray-300 rounded-full mr-3" />
-                  <span className="text-xl font-semibold">{option}</span>
-                </motion.div>
-              ))}
+              {optionsRight.map((option, index) => {
+                const isConnected = connections.some((conn) => conn.right === index);
+                return (
+                  <motion.div
+                    key={index}
+                    ref={el => rightRefs.current[index] = el}
+                    className="flex items-center cursor-pointer text-gray-800"
+                    onClick={() => handleRightClick(index)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <div className={`w-6 h-6 ${isConnected ? 'bg-green-600' : 'bg-gray-300'} rounded-full mr-3`} />
+                    <span className="text-xl font-semibold">{option}</span>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
